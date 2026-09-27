@@ -19,7 +19,7 @@
 
 ## Проверки
 
-8 deployment regression tests PASS: switch/rollback, health failure, post-switch restore, gateway cleanup, idempotency, checksum corruption, archive traversal, sudo env propagation. Дополнить реальными CI/VPS checks после публикации.
+10 deployment + 2 package regression tests PASS: switch/rollback, health failure, post-switch restore, gateway cleanup, idempotency, checksum corruption, archive traversal, sudo env propagation. Local make check-full: 10/10 PASS (.harness/runs/full-lp2c3t1o); последующие affected web/harness PASS. GitHub v0.1.1: все CI jobs PASS, deployment остановлен до запуска на различии classic/containerd IDs. Реальный архив проверен новым packager на VPS: вычисленный manifest digest совпадает с Docker .Id. Certbot dry-run renewal PASS. Независимое review: ошибки sudo env, gateway cleanup, mutable image tags и external version check исправлены. Дополнить успешным runtime после v0.1.2.
 
 ## Передача контекста
 

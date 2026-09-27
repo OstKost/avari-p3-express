@@ -252,3 +252,7 @@ This project is licensed under the [MIT License](LICENSE).
 REST-контракт, подключение stdio MCP и проверка сценария: [docs/work-api.md](docs/work-api.md). Для MCP используется официальный [Go SDK v1.8.0](https://github.com/modelcontextprotocol/go-sdk/releases/tag/v1.8.0), Go 1.25. Завершение задачи сохраняет управленческие статусы P3.express и SDLC.
 
 Агентные процедуры, три дополнительные роли, независимый QA и локальный плагин: [docs/agent-system.md](docs/agent-system.md).
+
+### Версионное демо на VPS
+
+[Демо p3express.avari.dev](https://p3express.avari.dev) развёртывается GitHub Actions после полного CI для тега `vMAJOR.MINOR.PATCH` из main. Вход по ключу менеджера. Выпуск, получение ключа, сохранение баз и откат: [docs/deployment.md](docs/deployment.md).

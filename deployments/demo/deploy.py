@@ -54,6 +54,8 @@ def metadata(path):
             raise ValueError('image tag does not match commit')
         if not re.fullmatch(r'sha256:[0-9a-f]{64}', data[f'{kind}_image_id']):
             raise ValueError('invalid image digest')
+        if not isinstance(data.get(kind+'_manifest_ids', []), list) or any(not isinstance(item, str) or not re.fullmatch(r'sha256:[0-9a-f]{64}', item) for item in data.get(kind+'_manifest_ids', [])):
+            raise ValueError('invalid manifest digests')
     return data
 
 
@@ -149,6 +151,10 @@ class Deployment:
         expected = self.info(path, data)
         if any(info.get(key) != value for key, value in expected.items()) or info.get('port') not in (14801, 14802):
             raise ValueError('release state does not match verified bundle')
+        for kind in ('api', 'web'):
+            pinned = info.get(kind + '_runtime_image_id')
+            if pinned and pinned not in [data[kind+'_image_id'], *data.get(kind+'_manifest_ids', [])]:
+                raise ValueError('runtime image does not match verified release')
         return path, data
 
     def state(self):
@@ -161,7 +167,7 @@ class Deployment:
 
     def compose(self, info, *args):
         path, data = self.release(info)
-        return self.command('compose', '-p', info['project'], '-f', str(path / 'compose.yml'), *args, env={'API_IMAGE': data['api_image_id'], 'WEB_IMAGE': data['web_image_id'], 'DATA_VOLUME': info['volume'], 'SLOT_PORT': str(info['port'])})
+        return self.command('compose', '-p', info['project'], '-f', str(path / 'compose.yml'), *args, env={'API_IMAGE': info.get('api_runtime_image_id', data['api_image_id']), 'WEB_IMAGE': info.get('web_runtime_image_id', data['web_image_id']), 'DATA_VOLUME': info['volume'], 'SLOT_PORT': str(info['port'])})
 
     def volume(self, name):
         result = self.command('volume', 'inspect', name, check=False)
@@ -175,19 +181,22 @@ class Deployment:
 
     def load(self, path, data):
         self.command('load', '-i', str(path / 'images.tar.gz'))
+        identities = {}
         for kind in ('api', 'web'):
             actual = self.command('image', 'inspect', '--format', '{{.Id}}', data[kind + '_image']).stdout.strip()
-            if actual != data[kind + '_image_id']:
+            if actual not in [data[kind+'_image_id'], *data.get(kind+'_manifest_ids', [])]:
                 raise ValueError('loaded image digest mismatch')
+            identities[kind + '_runtime_image_id'] = actual
+        return identities
 
     def prepare(self, info):
         path, data = self.release(info)
-        self.load(path, data)
+        info.update(self.load(path, data))
         self.volume(CREDENTIALS)
         created = self.volume(info['volume'])
-        self.command('run', '--rm', '--user', '0', '--entrypoint', 'sh', '-v', CREDENTIALS + ':/app/credentials', '-v', info['volume'] + ':/app/data', data['api_image'], '-c', 'chown 10001:10001 /app/data /app/credentials && chmod 700 /app/data /app/credentials')
+        self.command('run', '--rm', '--user', '0', '--entrypoint', 'sh', '-v', CREDENTIALS + ':/app/credentials', '-v', info['volume'] + ':/app/data', info['api_runtime_image_id'], '-c', 'chown 10001:10001 /app/data /app/credentials && chmod 700 /app/data /app/credentials')
         if created:
-            result = self.command('run', '--rm', '--entrypoint', '/app/demo', '-v', info['volume'] + ':/app/data', data['api_image'], '--db', '/app/data/p3.db', '--date', data['fixture_date'], '--profile', 'demo')
+            result = self.command('run', '--rm', '--entrypoint', '/app/demo', '-v', info['volume'] + ':/app/data', info['api_runtime_image_id'], '--db', '/app/data/p3.db', '--date', data['fixture_date'], '--profile', 'demo')
             fixture = json.loads(result.stdout)
             if fixture['schema_version'] != 2 or fixture['profile'] != 'demo' or len(fixture['projects']) != 3:
                 raise ValueError('seeded fixture is incomplete')

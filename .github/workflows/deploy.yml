@@ -40,16 +40,7 @@ jobs:
           docker pull nginx:1.28-alpine
           docker save "avari-p3-api:$GITHUB_SHA" "avari-p3-web:$GITHUB_SHA" nginx:1.28-alpine | gzip > bundle/images.tar.gz
           cp deployments/demo/{deploy.py,compose.yml,gateway.conf} bundle/
-          python3 - <<'PY'
-          import datetime,json,os,subprocess
-          sha=os.environ['GITHUB_SHA']
-          data={'version':os.environ['GITHUB_REF_NAME'],'commit':sha,'deployment_id':os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'],'fixture_date':datetime.date.today().isoformat()}
-          for kind in ('api','web'):
-              image=f'avari-p3-{kind}:{sha}'
-              data[kind+'_image']=image
-              data[kind+'_image_id']=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}',image],text=True).strip()
-          with open('bundle/release.json','w') as file: json.dump(data,file)
-          PY
+          python3 scripts/package_demo_release.py
           (cd bundle && sha256sum deploy.py compose.yml gateway.conf release.json images.tar.gz > SHA256SUMS)
           tar -C bundle -czf release.tar.gz deploy.py compose.yml gateway.conf release.json images.tar.gz SHA256SUMS
       - uses: actions/upload-artifact@v4

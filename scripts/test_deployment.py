@@ -136,6 +136,15 @@ class DeploymentTests(unittest.TestCase):
         self.assertEqual(values['API_IMAGE'], 'sha256:'+'b'*64)
         self.assertEqual(values['WEB_IMAGE'], 'sha256:'+'b'*64)
 
+    def test_load_accepts_verified_manifest_id_and_rejects_foreign_id(self):
+        data = {'api_image':'api:tag','web_image':'web:tag','api_image_id':'sha256:'+'a'*64,'web_image_id':'sha256:'+'a'*64,'api_manifest_ids':['sha256:'+'b'*64],'web_manifest_ids':['sha256:'+'b'*64]}
+        with patch.object(self.app, 'command', return_value=subprocess.CompletedProcess([],0,'sha256:'+'b'*64+'\n','')):
+            identities = self.app.load(self.path, data)
+        self.assertEqual(identities['web_runtime_image_id'], 'sha256:'+'b'*64)
+        with patch.object(self.app, 'command', return_value=subprocess.CompletedProcess([],0,'sha256:'+'c'*64+'\n','')):
+            with self.assertRaises(ValueError):
+                self.app.load(self.path, data)
+
     def test_nonroot_compose_variables_cross_sudo(self):
         with patch.object(deploy.os, 'geteuid', return_value=1000), patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([],0,'','')) as run:
             app = deploy.Deployment(self.path / 'nonroot')

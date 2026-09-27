@@ -35,7 +35,7 @@ export function ManagerSession({ children }: { children: React.ReactNode }) {
   if (state === "loading")
     return (
       <p role="status" className="p-8">
-        Проверяем локальную сессию…
+        Проверяем сессию…
       </p>
     );
   return (
@@ -43,7 +43,7 @@ export function ManagerSession({ children }: { children: React.ReactNode }) {
       <Card>
         <h1 className="text-2xl mb-3">Вход менеджера</h1>
         <p className="avari-secondary mb-4">
-          Введите локальный ключ менеджера из файла data/manager.key сервера.
+          Введите ключ менеджера, полученный у администратора сервера.
           Ключ агента предназначен для внешнего подключения.
         </p>
         <form

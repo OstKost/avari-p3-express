@@ -14,7 +14,7 @@ git push origin v0.1.1
 
 Только тег vMAJOR.MINOR.PATCH из истории main запускает deployment. Сначала Linux/macOS harness, API race tests, lint/typecheck/build и Chromium UI/MCP тесты, затем Docker сборка и SSH deployment. Прогресс — Actions → Versioned demo deployment, Environment demo. Теги неизменяемы; исправление выпускается следующей версией.
 
-Environment demo содержит DEMO_SSH_PRIVATE_KEY и DEMO_KNOWN_HOSTS. Ключ VPS закреплён, StrictHostKeyChecking=yes. При смене host key сначала проверить его вне CI, затем обновить Secret. CI key можно отозвать удалением строки avari-p3-github-demo из ~/.ssh/authorized_keys.
+Environment demo допускает только теги v*. Workflow дополнительно проверяет формат версии и ancestry main. Environment demo содержит DEMO_SSH_PRIVATE_KEY и DEMO_KNOWN_HOSTS. Ключ VPS закреплён, StrictHostKeyChecking=yes. При смене host key сначала проверить его вне CI, затем обновить Secret. CI key можно отозвать удалением строки avari-p3-github-demo из ~/.ssh/authorized_keys.
 
 ## Вход и состояние
 
