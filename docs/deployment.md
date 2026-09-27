@@ -1,6 +1,6 @@
 # Демо: GitHub Actions → VPS
 
-Адрес: https://p3express.avari.dev. Сервер user@176.53.174.118, приложение /opt/avari-p3-express. Вход по ключу менеджера. Секрет не входит в репозиторий, build args, release artifact или демо-базу.
+Адрес: https://p3express.avari.dev. Проверенный релиз: v0.1.3; предыдущий для отката: v0.1.2. Сервер user@176.53.174.118, приложение /opt/avari-p3-express. Вход по ключу менеджера. Секрет не входит в репозиторий, build args, release artifact или демо-базу.
 
 ## Выпуск
 
@@ -8,8 +8,8 @@
 
 ```sh
 git push origin main
-git tag -a v0.1.1 -m 'Demo v0.1.1'
-git push origin v0.1.1
+git tag -a v0.1.4 -m 'Demo v0.1.4'
+git push origin v0.1.4
 ```
 
 Только тег vMAJOR.MINOR.PATCH из истории main запускает deployment. Сначала Linux/macOS harness, API race tests, lint/typecheck/build и Chromium UI/MCP тесты, затем Docker сборка и SSH deployment. Прогресс — Actions → Versioned demo deployment, Environment demo. Теги неизменяемы; исправление выпускается следующей версией.

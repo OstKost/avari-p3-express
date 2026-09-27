@@ -138,6 +138,7 @@ def stop_process(process):
     # Demo supervisors start their own sessions, so killpg alone misses them.
     # Snapshot only this runner's descendants; never use global pkill patterns.
     if os.name == "posix":
+        descendants = []
         try:
             try:
                 os.killpg(process.pid, signal.SIGSTOP)
@@ -163,6 +164,18 @@ def stop_process(process):
             except ProcessLookupError:
                 pass
             process.wait()
+            # SIGKILL delivery is asynchronous. Parent wait does not reap
+            # descendants that started another session; await their actual exit
+            # before returning so inherited locks/listeners have been released.
+            deadline = time.monotonic() + 5
+            while descendants:
+                tree = subprocess.run(["ps", "-axo", "pid=,stat="], capture_output=True, text=True, check=True, timeout=5)
+                live = {int(pid) for pid, state in (line.split() for line in tree.stdout.splitlines()) if not state.startswith("Z")}
+                if not live.intersection(descendants):
+                    break
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("killed check descendants did not exit within 5s")
+                time.sleep(0.02)
     else:
         process.kill()
         process.wait()
