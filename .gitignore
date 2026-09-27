@@ -55,3 +55,6 @@ __pycache__/
 
 # Isolated demo fixtures and manifest
 .demo/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
