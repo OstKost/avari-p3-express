@@ -1,0 +1,40 @@
+services:
+  api:
+    image: ${API_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: '4820'
+      DB_PATH: /app/data/p3.db
+      MANAGER_KEY_PATH: /app/credentials/manager.key
+      ENVIRONMENT: production
+      BASE_URL: https://p3express.avari.dev
+      PUBLIC_MANAGER_ORIGIN: https://p3express.avari.dev
+      ALLOWED_ORIGINS: https://p3express.avari.dev
+    volumes:
+      - data:/app/data
+      - credentials:/app/credentials
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:4820/healthz]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+    labels:
+      io.avari.demo: 'true'
+  web:
+    image: ${WEB_IMAGE:?}
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:${SLOT_PORT:?}:80
+    depends_on:
+      api:
+        condition: service_healthy
+    labels:
+      io.avari.demo: 'true'
+volumes:
+  data:
+    external: true
+    name: ${DATA_VOLUME:?}
+  credentials:
+    external: true
+    name: p3express_demo_credentials

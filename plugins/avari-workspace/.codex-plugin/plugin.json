@@ -1,0 +1,19 @@
+{
+  "name": "avari-workspace",
+  "version": "0.1.0",
+  "description": "Avari task execution and independent verification over local stdio MCP.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Avari Workspace",
+    "shortDescription": "Execute and verify Avari project tasks.",
+    "longDescription": "P3.express decision briefs, assignment drafts, versioned execution, independent QA and retrospectives. Manager acceptance stays separate.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Read my Avari task context and help complete the assigned executor or reviewer workflow."
+  },
+  "mcpServers": "./.mcp.json"
+}

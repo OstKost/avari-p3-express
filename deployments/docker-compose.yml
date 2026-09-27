@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: avari-api
+    restart: unless-stopped
+    ports:
+      - "4820:4820"
+    environment:
+      - PORT=4820
+      - BASE_URL=http://localhost:4820
+      - DB_PATH=/app/data/p3.db
+      - ENVIRONMENT=production
+      - ALLOWED_ORIGINS=http://localhost:4800,http://localhost:4810,http://localhost
+    volumes:
+      - sqlite_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4820/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: avari-web
+    restart: unless-stopped
+    ports:
+      - "4800:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  sqlite_data:
+    name: avari_sqlite_data

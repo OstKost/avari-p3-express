@@ -1,0 +1,6 @@
+data
+bin
+tmp
+.env*
+*.key
+*.db*

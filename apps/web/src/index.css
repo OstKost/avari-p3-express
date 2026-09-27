@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --av-bg: #091416;
+    --av-surface: #102326;
+    --av-surface-raised: #173238;
+    --av-surface-hover: #1c3d43;
+    --av-text: #f3eee4;
+    --av-text-secondary: #b4c3bf;
+    --av-text-muted: #91a7a3;
+    --av-gold: #d5ad68;
+    --av-gold-hover: #e6c58d;
+    --av-cyan: #65d9f5;
+    --av-on-accent: #091416;
+    --av-border-subtle: #294247;
+    --av-border-control: #678581;
+    --av-success: #8cd7b0;
+    --av-warning: #ebc77e;
+    --av-danger: #f29b98;
+  }
+  .light {
+    --av-bg: #f5f3ed;
+    --av-surface: #fffdf7;
+    --av-surface-raised: #edf1eb;
+    --av-surface-hover: #e2eae3;
+    --av-text: #172a2b;
+    --av-text-secondary: #3c5553;
+    --av-text-muted: #4d6461;
+    --av-gold: #83602b;
+    --av-gold-hover: #694a1c;
+    --av-cyan: #07647a;
+    --av-on-accent: #fffdf7;
+    --av-border-subtle: #c9d4cd;
+    --av-border-control: #657f76;
+    --av-success: #146445;
+    --av-warning: #7a5014;
+    --av-danger: #a33634;
+  }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--av-bg); color: var(--av-text); font-family: 'Onest', system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
+  h1, h2, h3, h4 { font-family: 'Philosopher', Georgia, serif; font-weight: 400; }
+  code, kbd, samp, pre { font-family: 'Victor Mono', ui-monospace, monospace; font-feature-settings: 'liga' 1, 'calt' 1; }
+  button { font-family: 'Victor Mono', ui-monospace, monospace; }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--av-cyan); outline-offset: 3px; }
+  ::selection { background: var(--av-gold); color: var(--av-on-accent); }
+}
+
+.font-sans { font-family: 'Onest', system-ui, sans-serif; }
+.font-serif { font-family: 'Philosopher', Georgia, serif; }
+.font-mono, .font-elven-cursive { font-family: 'Victor Mono', ui-monospace, monospace; font-feature-settings: 'liga' 1, 'calt' 1; }
+.font-elven-cursive { font-style: italic; }
+.technical-exact { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'calt' 0; }
+
+.avari-shell { background: var(--av-bg); color: var(--av-text); }
+.avari-nav { background: color-mix(in srgb, var(--av-bg) 91%, transparent); border-color: var(--av-border-subtle); backdrop-filter: blur(12px); }
+.avari-surface { background: var(--av-surface); border: 1px solid var(--av-border-subtle); color: var(--av-text); }
+.avari-raised { background: var(--av-surface-raised); border: 1px solid var(--av-border-subtle); }
+.avari-muted { color: var(--av-text-muted); }
+.avari-secondary { color: var(--av-text-secondary); }
+.avari-gold { color: var(--av-gold); }
+.avari-cyan { color: var(--av-cyan); }
+.avari-divider { border-color: var(--av-border-subtle); }
+.avari-interactive { transition: background-color 180ms, border-color 180ms, color 180ms, opacity 180ms, transform 140ms cubic-bezier(.4,0,.2,1); }
+.avari-interactive:hover { background: var(--av-surface-hover); }
+.avari-button:not(:disabled):active { transform: translateY(1px); }
+.avari-button:disabled::after { display: none; }
+.avari-hero-content > :first-child { animation: avari-reveal 380ms cubic-bezier(.22,1,.36,1) both; }
+.avari-hero-content > :nth-child(2) { animation: avari-reveal 460ms 55ms cubic-bezier(.22,1,.36,1) both; }
+.avari-hero-form { animation: avari-reveal 500ms 100ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes avari-reveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.avari-content-enter { animation: avari-content-in 220ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes avari-content-in { from { opacity: .55; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.avari-view-switch { position: relative; isolation: isolate; }
+.avari-view-switch::before { content: ''; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: 44px; border-radius: 8px; background: var(--av-surface-raised); box-shadow: inset 0 0 0 1px var(--av-border-subtle); transition: transform 220ms cubic-bezier(.22,1,.36,1); }
+.avari-view-switch-table::before { transform: translateX(44px); }
+.avari-view-switch button { background: transparent; }
+.avari-view-switch button:hover { background: transparent; }
+.avari-modal-backdrop { animation: avari-backdrop-in 220ms ease-out both; }
+.avari-modal-panel { animation: avari-dialog-in 300ms cubic-bezier(.22,1,.36,1) both; transform-origin: center 30%; }
+@keyframes avari-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes avari-dialog-in { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.avari-orb { filter: drop-shadow(0 0 34px rgba(101, 217, 245, .15)); }
+.avari-orb .orb-arc { stroke-dasharray: 760; stroke-dashoffset: 760; animation: orb-trace 850ms cubic-bezier(.22,1,.36,1) forwards; }
+.avari-orb .orb-arc:nth-of-type(2) { animation-delay: 80ms; }
+.avari-orb .orb-code { opacity: 0; animation: orb-code 500ms 280ms ease-out forwards; }
+@keyframes orb-trace { to { stroke-dashoffset: 0; } }
+@keyframes orb-code { to { opacity: 1; } }
+.avari-shine { position: relative; overflow: hidden; }
+.avari-shine::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.32) 49%, transparent 66%); transform: translateX(-140%); }
+.avari-shine:hover::after { animation: edge-light 220ms ease-out; }
+@keyframes edge-light { to { transform: translateX(140%); } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .avari-orb .orb-arc { stroke-dashoffset: 0; }
+  .avari-orb .orb-code { opacity: 1; }
+  .avari-hero-content > :first-child, .avari-hero-content > :nth-child(2), .avari-hero-form, .avari-content-enter, .avari-modal-backdrop, .avari-modal-panel { animation: none; }
+}
+@media (forced-colors: active) { .avari-surface, .avari-raised { border: 1px solid CanvasText; } }

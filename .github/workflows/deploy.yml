@@ -1,0 +1,83 @@
+name: Versioned demo deployment
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: demo-deployment
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require a release tag from main
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git fetch origin main
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main
+  tests:
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+  deploy:
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: demo
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build checked release bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir bundle
+          docker build -t "avari-p3-api:$GITHUB_SHA" apps/api
+          docker build --build-arg "APP_VERSION=$GITHUB_REF_NAME" --build-arg "APP_COMMIT=$GITHUB_SHA" -t "avari-p3-web:$GITHUB_SHA" apps/web
+          docker pull nginx:1.28-alpine
+          docker save "avari-p3-api:$GITHUB_SHA" "avari-p3-web:$GITHUB_SHA" nginx:1.28-alpine | gzip > bundle/images.tar.gz
+          cp deployments/demo/{deploy.py,compose.yml,gateway.conf} bundle/
+          python3 - <<'PY'
+          import datetime,json,os,subprocess
+          sha=os.environ['GITHUB_SHA']
+          data={'version':os.environ['GITHUB_REF_NAME'],'commit':sha,'deployment_id':os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'],'fixture_date':datetime.date.today().isoformat()}
+          for kind in ('api','web'):
+              image=f'avari-p3-{kind}:{sha}'
+              data[kind+'_image']=image
+              data[kind+'_image_id']=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}',image],text=True).strip()
+          with open('bundle/release.json','w') as file: json.dump(data,file)
+          PY
+          (cd bundle && sha256sum deploy.py compose.yml gateway.conf release.json images.tar.gz > SHA256SUMS)
+          tar -C bundle -czf release.tar.gz deploy.py compose.yml gateway.conf release.json images.tar.gz SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo-${{ github.ref_name }}
+          path: release.tar.gz
+          retention-days: 14
+      - name: Deploy with pinned SSH host key
+        env:
+          DEPLOY_KEY: ${{ secrets.DEMO_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEMO_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/demo_key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          trap 'rm -f "$HOME/.ssh/demo_key"' EXIT
+          target=user@176.53.174.118
+          incoming="/opt/avari-p3-express/incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ssh -i "$HOME/.ssh/demo_key" -o BatchMode=yes -o StrictHostKeyChecking=yes "$target" "mkdir -p '$incoming'"
+          scp -i "$HOME/.ssh/demo_key" -o BatchMode=yes -o StrictHostKeyChecking=yes release.tar.gz deployments/demo/deploy.py "$target:$incoming/"
+          ssh -i "$HOME/.ssh/demo_key" -o BatchMode=yes -o StrictHostKeyChecking=yes "$target" "python3 '$incoming/deploy.py' apply --bundle '$incoming/release.tar.gz'"
+          curl --fail --retry 6 --retry-delay 3 https://p3express.avari.dev/healthz
+          curl --fail https://p3express.avari.dev/version.json > public-version.json
+          python3 - <<'PY'
+          import json,os
+          with open('public-version.json') as file: version=json.load(file)
+          assert version == {'version':os.environ['GITHUB_REF_NAME'],'commit':os.environ['GITHUB_SHA']}, version
+          PY
